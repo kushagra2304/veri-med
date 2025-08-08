@@ -28,13 +28,13 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const response = await axios.post("https://verimed.onrender.com/auth/signup", {
+      const response = await axios.post("http://localhost:5000/api/signup", {
         ...user,
         role,
       });
 
       if (response.status === 201 || response.status === 200) {
-        navigate("/login");
+        navigate("/");
       } else {
         setError("Signup failed. Please try again.");
       }

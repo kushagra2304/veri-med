@@ -12,9 +12,9 @@ import History from "./components/User/history";
 function App() {
   return (
     <Routes>
-      {/* <Route path="/" element={<LoginPage />} /> */}
-      {/* <Route path="/signup/:role" element={<SignupPage />} /> */}
-      <Route path="/*" element={<UserDashboard />} />
+      <Route path="/" element={<LoginPage />} /> 
+      <Route path="/signup/:role" element={<SignupPage />} /> 
+      <Route path="/userdashboard" element={<UserDashboard />} />
       <Route path="/chatbot" element={<Chatbot />} />
       <Route path="/buy-meds" element={<BuyMeds />} />
       <Route path="/profile" element={<Profile />} />

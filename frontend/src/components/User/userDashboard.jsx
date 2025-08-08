@@ -75,31 +75,43 @@ export default function UserDashboard() {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file || file.type !== "application/pdf") {
-      alert("Please select a PDF file");
-      return;
-    }
+  // Cloudinary direct upload handler
+  const handleCloudinaryUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file || file.type !== "application/pdf") {
+    alert("Please select a PDF file");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("file", file);
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", "veri-med");
 
-    try {
-      setUploadResponse("⏳ Uploading file to backend for processing...");
+  try {
+    setUploadResponse("⏳ Uploading to Cloudinary...");
+    const cloudinaryRes = await axios.post(
+      "https://api.cloudinary.com/v1_1/dsb8reiwk/raw/upload",
+      formData
+    );
+    const cloudinaryUrl = cloudinaryRes.data.secure_url;
+    console.log("Cloudinary upload successful:", cloudinaryUrl);
+    setUploadResponse(`✅ Uploaded to Cloudinary!\n\nURL:\n${cloudinaryUrl}`);
 
-      const response = await axios.post(
-        "https://verimed-ai.onrender.com/upload",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      console.log("Backend Response:", response.data.result)
+    // Send the Cloudinary URL to your backend for DB storage and processing
+    setUploadResponse("⏳ Sending Cloudinary URL to backend for processing...");
+    const response = await axios.post(
+      "https://verimed-ai.onrender.com/upload",
+      { fileUrl: cloudinaryUrl }
+    );
+    console.log("Backend Response:", response.data.result);
 
-      setUploadResponse(`✅ File uploaded successfully!\n\n${JSON.stringify(response.data.result, null, 2)}`);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setUploadResponse("❌ Failed to upload. Please check console.");
-    }
+    setUploadResponse(
+      `✅ File processed successfully!\n\n${JSON.stringify(response.data.result, null, 2)}`
+    );
+  } catch (err) {
+    console.error("Upload or processing error:", err);
+    setUploadResponse("❌ Failed to upload or process. Please check console.");
+  }
   };
 
   return (
@@ -181,7 +193,7 @@ export default function UserDashboard() {
               accept="application/pdf"
               ref={fileInputRef}
               className="hidden"
-              onChange={handleFileChange}
+              onChange={handleCloudinaryUpload}
             />
 
             <DropdownMenu>

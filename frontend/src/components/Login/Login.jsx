@@ -33,7 +33,7 @@ export default function LoginPage() {
 
     try {
       // Send POST request to the backend API for authentication
-      const response = await axios.post("https://verimed.onrender.com/auth/login", loginData);
+      const response = await axios.post("http://localhost:5000/api/login", loginData);
 
       if (response.status === 200 && response.data.token) {
         // Store the token or user data in localStorage/sessionStorage (Optional)
@@ -42,6 +42,14 @@ export default function LoginPage() {
 
         // Redirect to role-specific dashboard
         navigate(role === "doctor" ? "/doctor" : "/user");
+
+// With:
+if (role === "doctor") {
+  // navigate("/doctor"); // Uncomment if you add a doctor dashboard route
+  setError("Doctor dashboard not implemented yet.");
+} else {
+  navigate("/userdashboard");
+} 
       } else {
         setError("Invalid credentials, please try again.");
       }
