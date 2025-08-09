@@ -1,46 +1,22 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function History() {
   const [historyItems, setHistoryItems] = useState([]);
 
   useEffect(() => {
-    // Replace with API call in real usage
-    const uploadedPDFs = [
-      {
-        id: 1,
-        fileName: "blood_report.pdf",
-        url: "https://res.cloudinary.com/dsejopp0u/image/upload/v12345/blood_report.pdf",
-        uploadedAt: "2024-12-15",
-      },
-      {
-        id: 2,
-        fileName: "xray_scan.pdf",
-        url: "https://res.cloudinary.com/dsejopp0u/image/upload/v12346/xray_scan.pdf",
-        uploadedAt: "2025-01-10",
-      },
-    ];
-
-    const summaries = [
-      {
-        id: 1,
-        summary: "Mild anemia detected. Suggest further hemoglobin tests.",
-        date: "2024-12-15",
-      },
-      {
-        id: 2,
-        summary: "No major issues in chest x-ray. Slight inflammation noted.",
-        date: "2025-01-10",
-      },
-    ];
-
-    // Combine data by id or index
-    const merged = uploadedPDFs.map((pdf, index) => ({
-      ...pdf,
-      summary: summaries[index]?.summary || "No summary available.",
-    }));
-
-    setHistoryItems(merged);
+    // user id abhi bhejni h yha se
+    const fetchHistory = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/documents-pull");
+        setHistoryItems(res.data.documents || []);
+      } catch (err) {
+        console.error("Failed to fetch history:", err);
+        setHistoryItems([]);
+      }
+    };
+    fetchHistory();
   }, []);
 
   return (
@@ -53,21 +29,34 @@ export default function History() {
             <CardContent className="p-4 space-y-2">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">{item.fileName}</p>
-                  <p className="text-sm text-gray-500">Uploaded on {item.uploadedAt}</p>
+                  <p className="font-medium">{item.file_name || "Document"}</p>
+                  <p className="text-sm text-gray-500">
+                    Uploaded on {item.uploaded_at ? item.uploaded_at.split("T")[0] : "N/A"}
+                  </p>
                 </div>
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                >
-                  View PDF
-                </a>
+                <div className="flex gap-4">
+                  <a
+                    href={item.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    View
+                  </a>
+                  <a
+                    href={item.file_url}
+                    download
+                    className="text-green-600 underline"
+                  >
+                    Download
+                  </a>
+                </div>
               </div>
-              <p className="text-gray-700 mt-2">
-                <span className="font-semibold">Summary:</span> {item.summary}
-              </p>
+              {/* {item.summary && (
+                <p className="text-gray-700 mt-2">
+                  <span className="font-semibold">Summary:</span> {item.summary}
+                </p>
+              )} */}
             </CardContent>
           </Card>
         ))

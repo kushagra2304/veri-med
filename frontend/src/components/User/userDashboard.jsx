@@ -83,6 +83,7 @@ export default function UserDashboard() {
     return;
   }
 
+  // 1. Upload to Cloudinary
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", "veri-med");
@@ -90,29 +91,39 @@ export default function UserDashboard() {
   try {
     setUploadResponse("⏳ Uploading to Cloudinary...");
     const cloudinaryRes = await axios.post(
-      "https://api.cloudinary.com/v1_1/dsb8reiwk/raw/upload",
+      "https://api.cloudinary.com/v1_1/dsejopp0u/raw/upload",
       formData
     );
     const cloudinaryUrl = cloudinaryRes.data.secure_url;
     console.log("Cloudinary upload successful:", cloudinaryUrl);
     setUploadResponse(`✅ Uploaded to Cloudinary!\n\nURL:\n${cloudinaryUrl}`);
 
-    // Send the Cloudinary URL to your backend for DB storage and processing
-    setUploadResponse("⏳ Sending Cloudinary URL to backend for processing...");
-    const response = await axios.post(
+    // 2. Send the file to the AI model for processing
+    setUploadResponse("⏳ Sending file to AI model for processing...");
+    const aiFormData = new FormData();
+    aiFormData.append("file", file);
+    const aiResponse = await axios.post(
       "https://verimed-ai.onrender.com/upload",
-      { fileUrl: cloudinaryUrl }
+      aiFormData,
+      { headers: { "Content-Type": "multipart/form-data" } }
     );
-    console.log("Backend Response:", response.data.result);
+    console.log("AI Model Response:", aiResponse.data.result);
 
     setUploadResponse(
-      `✅ File processed successfully!\n\n${JSON.stringify(response.data.result, null, 2)}`
+      `✅ File processed by AI model!\n\n${JSON.stringify(aiResponse.data.result, null, 2)}\n\nCloudinary URL: ${cloudinaryUrl}`
     );
+
+    // // 3. Send the Cloudinary URL to your backend for DB storage
+    await axios.post("http://localhost:5000/documents", {
+      fileUrl: cloudinaryUrl,
+      // add any other info you want to save
+    });
+
   } catch (err) {
     console.error("Upload or processing error:", err);
     setUploadResponse("❌ Failed to upload or process. Please check console.");
   }
-  };
+};
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-blue-200">
@@ -232,15 +243,6 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* Chatbot Button */}
-      <button
-        ref={chatbotButtonRef}
-        className="fixed bottom-6 right-6 bg-[#010D2A] hover:bg-blue-950 text-white p-3 rounded-full shadow-lg z-50"
-        title="Chat with Bot"
-        onClick={() => navigate("/chatbot")}
-      >
-        <BotIcon className="w-6 h-6" />
-      </button>
     </div>
   );
 }

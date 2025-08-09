@@ -112,6 +112,42 @@ app.post("/api/login", (req, res) => {
   });
 });
 
+app.post("/documents", (req, res) => {
+  const { fileUrl } = req.body;
+  if (!fileUrl) {
+    return res.status(400).json({ error: "No fileUrl provided" });
+  }
+
+  const sql = "INSERT INTO documents (file_url, uploaded_at) VALUES (?, NOW())";
+  db.query(sql, [fileUrl], (err, result) => {
+    if (err) {
+      console.error("Error saving document:", err);
+      return res.status(500).json({ error: "Failed to save document" });
+    }
+    res.status(201).json({ message: "Document saved successfully!" });
+  });
+});
+
+app.get("/documents-pull", (req, res) => {
+  const userId = req.query.user_id; // or req.user.id if from auth
+
+  if (!userId) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
+  db.query(
+    "SELECT id, file_url, uploaded_at FROM documents WHERE user_id = ? ORDER BY uploaded_at DESC",
+    [userId],
+    (err, results) => {
+      if (err) {
+        console.error("Error fetching documents:", err);
+        return res.status(500).json({ error: "Failed to fetch documents" });
+      }
+      res.json({ documents: results });
+    }
+  );
+});
+
 // app.post("/upload", upload.single("file"), async (req, res) => {
 //   try {
 //     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
