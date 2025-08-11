@@ -28,7 +28,7 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const response = await axios.post("https://veri-med.onrender.com/api/signup", {
+      const response = await axios.post("https://verimed.onrender.com/api/signup", {
         ...user,
         role,
       });
