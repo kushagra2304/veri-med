@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import axios from "axios"; // Ensure axios is installed
+import axios from "axios";
+import { useAuth } from "@/context/ContextAuth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [role, setRole] = useState("user");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const {login}= useAuth();
 
   const handleRoleChange = (newRole) => {
     if (newRole) {
@@ -21,43 +23,40 @@ export default function LoginPage() {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError(""); // Clear previous errors
+  e.preventDefault();
+  setError("");
 
-    // Prepare login data
-    const loginData = {
-      email,
-      password,
-      role,
-    };
+  const loginData = { email, password, role };
 
-    try {
-      // Send POST request to the backend API for authentication
-      const response = await axios.post("http://localhost:5000/api/login", loginData);
+  try {
+    const response = await axios.post("http://localhost:5000/api/login", loginData);
 
-      if (response.status === 200 && response.data.token) {
-        // Store the token or user data in localStorage/sessionStorage (Optional)
-        localStorage.setItem("authToken", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+    console.log("Login API response:", response.data);
+    console.log("Selected role:", role);
 
-        // Redirect to role-specific dashboard
-        navigate(role === "doctor" ? "/doctor" : "/user");
+    if (response.status === 200 && response.data.token) {
+      // Save auth data
+      localStorage.setItem("authToken", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
-// With:
-if (role === "doctor") {
-  // navigate("/doctor"); // Uncomment if you add a doctor dashboard route
-  setError("Doctor dashboard not implemented yet.");
-} else {
-  navigate("/userdashboard");
-} 
+      // Store in auth context
+      login(response.data.user);
+
+      // Redirect based on role
+      if (role === "doctor") {
+        navigate("/doctor");
       } else {
-        setError("Invalid credentials, please try again.");
+        navigate("/userdashboard");
       }
-    } catch (err) {
-      console.error("Login failed:", err);
-      setError("An error occurred. Please try again later.");
+    } else {
+      setError("Invalid credentials, please try again.");
     }
-  };
+  } catch (err) {
+    console.error("Login failed:", err);
+    setError("An error occurred. Please try again later.");
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-100 px-4">

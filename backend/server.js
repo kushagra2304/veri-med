@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import mysql2 from "mysql2";
+import mysql from "mysql2/promise";
 import dotenv from "dotenv";
 // import multer from "multer";
 // import pdfParse from "pdf-parse";
@@ -9,8 +9,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 const app = express();
-app.use(cors()); 
+app.use(cors({
+  origin: "http://localhost:5173", // your frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json()); 
+// app.options("*", cors());
+
 // cloudinary.v2.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 //   api_key: process.env.CLOUDINARY_API_KEY,
@@ -21,7 +27,7 @@ app.use(express.json());
 
 
 
-const db = mysql2.createConnection({
+const db = await mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -29,35 +35,27 @@ const db = mysql2.createConnection({
   port: process.env.DB_PORT,
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("❌ MySQL connection failed:", err);
-    process.exit(1);
-  }
-  console.log("✅ Connected to Aiven MySQL");
-});
+console.log("✅ Connected to Aiven MySQL via Promise API");
 
 // SIGNUP API
-app.post("/api/signup", (req, res) => {
+app.post("/api/signup", async (req, res) => {
   const { name, email, gender, age, password, role } = req.body;
 
-  const sql = `
-    INSERT INTO users (name, email, gender, age, password, role)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
-
-  db.query(sql, [name, email, gender, age, password, role], (err, result) => {
-    if (err) {
-      console.error("Error inserting user:", err);
-      return res.status(500).json({ error: "Internal server error" });
-    }
+  try {
+    await db.execute(
+      "INSERT INTO users (name, email, gender, age, password, role) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, email, gender, age, password, role]
+    );
     res.status(201).json({ message: "User registered successfully!" });
-  });
+  } catch (err) {
+    console.error("Error inserting user:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 
 // LOGIN API
-app.post("/api/login", (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { email, password, role } = req.body;
 
   console.log("🟡 Login Attempt:");
@@ -70,13 +68,11 @@ app.post("/api/login", (req, res) => {
     return res.status(400).json({ error: "Email, password, and role are required." });
   }
 
-  const sql = `SELECT id, name, email, password, role FROM users WHERE email = ? AND role = ?`;
-
-  db.query(sql, [email, role], (err, results) => {
-    if (err) {
-      console.error("❌ Error during login:", err);
-      return res.status(500).json({ error: "Internal server error" });
-    }
+  try {
+    const [results] = await db.execute(
+      "SELECT id, name, email, password, role FROM users WHERE email = ? AND role = ?",
+      [email, role]
+    );
 
     if (results.length === 0) {
       console.warn("❌ No user found with this email and role");
@@ -109,45 +105,49 @@ app.post("/api/login", (req, res) => {
       console.warn("❌ Password mismatch");
       return res.status(401).json({ error: "Invalid password" });
     }
-  });
+  } catch (err) {
+    console.error("❌ Error during login:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 });
 
-app.post("/documents", (req, res) => {
-  const { fileUrl } = req.body;
-  if (!fileUrl) {
-    return res.status(400).json({ error: "No fileUrl provided" });
+app.post("/documents", async (req, res) => {
+  const { fileUrl, user_id } = req.body;
+
+  if (!fileUrl || !user_id) {
+    return res.status(400).json({ error: "fileUrl and user_id are required" });
   }
 
-  const sql = "INSERT INTO documents (file_url, uploaded_at) VALUES (?, NOW())";
-  db.query(sql, [fileUrl], (err, result) => {
-    if (err) {
-      console.error("Error saving document:", err);
-      return res.status(500).json({ error: "Failed to save document" });
-    }
-    res.status(201).json({ message: "Document saved successfully!" });
-  });
+  try {
+    await db.query(
+      "INSERT INTO documents (file_url, user_id, uploaded_at) VALUES (?, ?, NOW())",
+      [fileUrl, user_id]
+    );
+    res.json({ success: true, message: "Document saved successfully!" });
+  } catch (err) {
+    console.error("Error saving document:", err);
+    res.status(500).json({ error: "Failed to save document" });
+  }
 });
 
-app.get("/documents-pull", (req, res) => {
-  const userId = req.query.user_id; // or req.user.id if from auth
 
-  if (!userId) {
-    return res.status(400).json({ error: "User ID is required" });
+app.get("/documents-pull", async (req, res) => {
+  const { user_id } = req.query;
+  if (!user_id) {
+    return res.status(400).json({ error: "user_id is required" });
   }
 
-  db.query(
-    "SELECT id, file_url, uploaded_at FROM documents WHERE user_id = ? ORDER BY uploaded_at DESC",
-    [userId],
-    (err, results) => {
-      if (err) {
-        console.error("Error fetching documents:", err);
-        return res.status(500).json({ error: "Failed to fetch documents" });
-      }
-      res.json({ documents: results });
-    }
-  );
+  try {
+    const [rows] = await db.query(
+      "SELECT * FROM documents WHERE user_id = ? ORDER BY uploaded_at DESC",
+      [user_id]
+    );
+    res.json({ documents: rows });
+  } catch (err) {
+    console.error("Error fetching documents:", err);
+    res.status(500).json({ error: "Failed to fetch documents" });
+  }
 });
-
 // app.post("/upload", upload.single("file"), async (req, res) => {
 //   try {
 //     if (!req.file) return res.status(400).json({ error: "No file uploaded" });

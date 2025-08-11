@@ -19,6 +19,7 @@ import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
 import axios from "axios";
+import { AuthProvider, useAuth } from "@/context/ContextAuth";
 
 export default function UserDashboard() {
   const fileInputRef = useRef(null);
@@ -30,6 +31,7 @@ export default function UserDashboard() {
   const [query, setQuery] = useState("");
   const [filteredDoctors, setFilteredDoctors] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  const {user} = useAuth();
 
   const mockDoctors = [
     { name: "Dr. Ayesha Khan", specialization: "Cardiologist" },
@@ -116,6 +118,7 @@ export default function UserDashboard() {
     // // 3. Send the Cloudinary URL to your backend for DB storage
     await axios.post("http://localhost:5000/documents", {
       fileUrl: cloudinaryUrl,
+      user_id: user?.id,
       // add any other info you want to save
     });
 

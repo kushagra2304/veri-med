@@ -1,23 +1,29 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
+import { AuthContext , useAuth} from "@/context/ContextAuth"; // import your auth context
 
 export default function History() {
   const [historyItems, setHistoryItems] = useState([]);
+  const { user } = useAuth(); // get user from context
 
   useEffect(() => {
-    // user id abhi bhejni h yha se
+    if (!user?.id) return; // don't fetch until we have a user ID
+
     const fetchHistory = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/documents-pull");
+        const res = await axios.get("http://localhost:5000/documents-pull", {
+          params: { user_id: user.id }, // send user_id as query param
+        });
         setHistoryItems(res.data.documents || []);
       } catch (err) {
         console.error("Failed to fetch history:", err);
         setHistoryItems([]);
       }
     };
+
     fetchHistory();
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="p-8">
@@ -52,11 +58,6 @@ export default function History() {
                   </a>
                 </div>
               </div>
-              {/* {item.summary && (
-                <p className="text-gray-700 mt-2">
-                  <span className="font-semibold">Summary:</span> {item.summary}
-                </p>
-              )} */}
             </CardContent>
           </Card>
         ))
