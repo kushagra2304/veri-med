@@ -29,7 +29,7 @@ export default function LoginPage() {
   const loginData = { email, password, role };
 
   try {
-    const response = await axios.post("http://localhost:5000/api/login", loginData);
+    const response = await axios.post("https://veri-med.onrender.com/api/login", loginData);
 
     console.log("Login API response:", response.data);
     console.log("Selected role:", role);

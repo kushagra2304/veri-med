@@ -116,7 +116,7 @@ export default function UserDashboard() {
     );
 
     // // 3. Send the Cloudinary URL to your backend for DB storage
-    await axios.post("http://localhost:5000/documents", {
+    await axios.post("https://veri-med.onrender.com/documents", {
       fileUrl: cloudinaryUrl,
       user_id: user?.id,
       // add any other info you want to save

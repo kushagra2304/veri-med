@@ -12,7 +12,7 @@ export default function History() {
 
     const fetchHistory = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/documents-pull", {
+        const res = await axios.get("https://veri-med.onrender.com/documents-pull", {
           params: { user_id: user.id }, // send user_id as query param
         });
         setHistoryItems(res.data.documents || []);
