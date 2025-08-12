@@ -89,8 +89,7 @@ app.post("/api/login", async (req, res) => {
 
     if (user.password === password) {
       console.log("✅ Password matched. Login successful!");
-
-      // Dummy token for demonstration (replace with JWT in production)
+      
       const token = "dummy-token";
 
       const userData = {

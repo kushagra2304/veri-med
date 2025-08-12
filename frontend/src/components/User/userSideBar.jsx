@@ -25,7 +25,7 @@ export default function UserSidebar() {
     { to: "/doctors", label: "Doctor", icon: <Stethoscope size={18} /> },
     { to: "/user/history", label: "History", icon: <Clock size={18} /> },
     // { to: "/buy-meds", label: "Buy Medicines", icon: <ShoppingBag size={18} /> },
-    { to: "/user/messages", label: "Chat", icon: <MessageSquare size={18} /> },
+    // { to: "/user/messages", label: "Chat", icon: <MessageSquare size={18} /> },
     { to: "/profile", label: "Profile", icon: <UserCircle size={18} /> },
   ];
 

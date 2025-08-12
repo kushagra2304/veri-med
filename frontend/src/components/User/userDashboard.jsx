@@ -101,7 +101,7 @@ export default function UserDashboard() {
     setUploadResponse(`✅ Uploaded to Cloudinary!\n\nURL:\n${cloudinaryUrl}`);
 
     // 2. Send the file to the AI model for processing
-    setUploadResponse("⏳ Sending file to AI model for processing...");
+    setUploadResponse("⏳ Processing you file. It might take a few minutes!");
     const aiFormData = new FormData();
     aiFormData.append("file", file);
     const aiResponse = await axios.post(
@@ -109,7 +109,7 @@ export default function UserDashboard() {
       aiFormData,
       { headers: { "Content-Type": "multipart/form-data" } }
     );
-    console.log("AI Model Response:", aiResponse.data.result);
+    console.log("Result:", aiResponse.data.result);
 
     setUploadResponse(
       `✅ File processed by AI model!\n\n${JSON.stringify(aiResponse.data.result, null, 2)}\n\nCloudinary URL: ${cloudinaryUrl}`
