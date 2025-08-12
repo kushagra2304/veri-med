@@ -6,7 +6,7 @@ import Chatbot from "./components/User/chatBot"; // <-- Import this
 import BuyMeds from "./components/User/buyMeds"; // <-- Import this
 import Profile from "./components/Profile/Profile";
 import History from "./components/User/history";
-import DoctorsPage from "./components/User/doctors";
+import ComingSoon from "./components/doctor/home";
 // import Messages from "./components/Chats/Message/Messages";
 // import DoctorDashboard from "./components/Doctor/DoctorDashboard"; // Optional: Replace if needed
 
@@ -20,7 +20,7 @@ function App() {
       <Route path="/buy-meds" element={<BuyMeds />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/user/history" element={<History />} />
-      <Route path="/doctors" element={<DoctorsPage />} />
+      <Route path="/doctor" element={<ComingSoon />} />
 
       {/* <Route path="/user/messages" element={<Messages />} /> */}
 

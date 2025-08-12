@@ -91,14 +91,14 @@ export default function UserDashboard() {
   formData.append("upload_preset", "veri-med");
 
   try {
-    setUploadResponse("⏳ Uploading to Cloudinary...");
+    setUploadResponse("⏳ Uploading ");
     const cloudinaryRes = await axios.post(
       "https://api.cloudinary.com/v1_1/dsejopp0u/raw/upload",
       formData
     );
     const cloudinaryUrl = cloudinaryRes.data.secure_url;
     console.log("Cloudinary upload successful:", cloudinaryUrl);
-    setUploadResponse(`✅ Uploaded to Cloudinary!\n\nURL:\n${cloudinaryUrl}`);
+    setUploadResponse(`✅ File Uploaded \n\nURL:\n${cloudinaryUrl}`);
 
     // 2. Send the file to the AI model for processing
     setUploadResponse("⏳ Processing you file. It might take a few minutes!");
@@ -112,7 +112,7 @@ export default function UserDashboard() {
     console.log("Result:", aiResponse.data.result);
 
     setUploadResponse(
-      `✅ File processed by AI model!\n\n${JSON.stringify(aiResponse.data.result, null, 2)}\n\nCloudinary URL: ${cloudinaryUrl}`
+      `✅ File processed\n\n${JSON.stringify(aiResponse.data.result, null, 2)}\n\n}`
     );
 
     // // 3. Send the Cloudinary URL to your backend for DB storage
